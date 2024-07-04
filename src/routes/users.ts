@@ -1,10 +1,27 @@
 import express from 'express';
 import User from '../models/User';
+import { handleError } from '../helpers/handleError';
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-    res.status(200).send('hui');
+router.get('/', async (req, res) => {
+    try {
+        const users = await User.find();
+        res.status(200).json(users);
+    } catch (err: unknown) {
+        handleError(err, res);
+    }
+});
+
+router.get('/:id', async (req, res) => {
+    try {
+        const user = await User.findOne({
+            _id: req.params.id
+        });
+        res.status(200).json(user);
+    } catch (err: unknown) {
+        handleError(err, res);
+    }
 });
 
 router.post('/', async (req, res) => {
@@ -16,8 +33,24 @@ router.post('/', async (req, res) => {
     try {
         const newUser = await user.save();
         res.status(201).json(newUser);
-    } catch (err) {
-        res.status(400).json({ message: 'error' });
+    } catch (err: unknown) {
+        handleError(err, res);
+    }
+});
+
+router.patch('/:id', async (req, res) => {
+    try {
+        await User.updateOne(
+            {
+                _id: req.params.id
+            },
+            {
+                phone_number: req.body.phoneNumber
+            }
+        );
+        res.status(200).json({ message: 'Phone number is updated' });
+    } catch (err: unknown) {
+        handleError(err, res);
     }
 });
 

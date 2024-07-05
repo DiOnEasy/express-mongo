@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 
-interface Error {
+export interface IError {
     status?: number;
     message: string;
     stack?: string;
 }
 
 const errorHandler = (
-    err: Error,
+    err: IError,
     req: Request,
     res: Response,
     next: NextFunction

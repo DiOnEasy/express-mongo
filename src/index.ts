@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import errorHandler from './helpers/errorHandler';
+import errorHandler from './middleware/errorHandler';
+import userRouter from './routes/users';
 
 const app = express();
 const port = 4200;
@@ -12,7 +13,6 @@ mongoose
 
 app.use(express.json());
 
-const userRouter = require('./routes/users');
 app.use('/users', userRouter);
 
 app.use(errorHandler);

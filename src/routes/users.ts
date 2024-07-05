@@ -1,5 +1,8 @@
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import User from '../models/User';
+import path from 'path';
+import { userCreateValidation } from '../validations/userValidation';
+import handleValidationError from '../middleware/handleValidationError';
 
 const router = express.Router();
 
@@ -13,7 +16,7 @@ router.get('/', async (req, res, next) => {
     try {
         const users = await User.find();
         res.status(200).json(users);
-    } catch (err: unknown) {
+    } catch (err: any) {
         next(err);
     }
 });
@@ -24,24 +27,40 @@ router.get('/:id', async (req, res, next) => {
             _id: req.params.id
         });
         res.status(200).json(user);
-    } catch (err: unknown) {
+    } catch (err: any) {
         next(err);
     }
 });
 
-router.post('/', async (req, res, next) => {
-    const user = new User({
-        first_name: req.body.firstName,
-        last_name: req.body.lastName,
-        phone_number: req.body.phoneNumber
+router.get('/file/:fileName', (req, res) => {
+    const filePath = path.join(__dirname, '../../public', req.params.fileName);
+    console.log(filePath);
+    res.sendFile(filePath, (err) => {
+        if (err) {
+            res.status(500).send('Error sending file');
+        }
     });
-    try {
-        const newUser = await user.save();
-        res.status(201).json(newUser);
-    } catch (err: unknown) {
-        next(err);
-    }
 });
+
+router.post(
+    '/',
+    userCreateValidation,
+    handleValidationError,
+    async (req: Request, res: Response, next: NextFunction) => {
+        const user = new User({
+            first_name: req.body.firstName,
+            last_name: req.body.lastName,
+            phone_number: req.body.phoneNumber
+        });
+        try {
+            const newUser = await user.save();
+            res.status(201).json(newUser);
+        } catch (err: any) {
+            err.status = 400;
+            next(err);
+        }
+    }
+);
 
 router.patch('/:id', async (req, res, next) => {
     try {
@@ -54,9 +73,9 @@ router.patch('/:id', async (req, res, next) => {
             }
         );
         res.status(200).json({ message: 'Phone number is updated' });
-    } catch (err: unknown) {
+    } catch (err: any) {
         next(err);
     }
 });
 
-module.exports = router;
+export default router;
